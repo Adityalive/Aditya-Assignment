@@ -1,5 +1,5 @@
 import { Mistral } from "@mistralai/mistralai";
-import { checkPolicy } from "./policyEngine.js";
+import { checkPolicy, recordTokenUsage } from "./policyEngine.js";
 import { Log } from "./models/Log.js";
 import { Conversation } from "./models/Conversation.js";
 
@@ -50,6 +50,18 @@ export class Agent {
       const choice = response.choices[0];
       const msg = choice.message;
 
+      // ── Record token usage ─────────────────────────────────────
+      const usage = response.usage;
+      if (usage?.totalTokens) {
+        await recordTokenUsage(conversationId, usage.totalTokens);
+        // Emit live token update to dashboard
+        this.io.to("admin").emit("budget:update", {
+          conversationId,
+          tokensUsed: usage.totalTokens,
+          timestamp: new Date().toISOString(),
+        });
+      }
+
       if (!msg.toolCalls || msg.toolCalls.length === 0) {
         conv.messages.push(msg);
         await conv.save();
@@ -70,7 +82,8 @@ export class Agent {
           toolArgs = {};
         }
 
-        const policy = await checkPolicy(toolName);
+        // Pass toolArgs and conversationId for full policy checking
+        const policy = await checkPolicy(toolName, toolArgs, conversationId);
 
         if (policy.requiresApproval) {
           await Log.create({ conversationId, toolName, toolInput: toolArgs, status: "pending_approval", reason: policy.reason });

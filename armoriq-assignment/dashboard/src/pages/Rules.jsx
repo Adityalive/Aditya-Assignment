@@ -204,6 +204,9 @@ export default function Rules() {
   const [showAdd, setShowAdd] = useState(false);
   const [newTool, setNewTool] = useState("");
   const [newType, setNewType] = useState(RULE_TYPES[0]);
+  const [inputPattern, setInputPattern] = useState("");
+  const [inputPatternField, setInputPatternField] = useState("");
+  const [inputPatternAction, setInputPatternAction] = useState("block");
   const [creating, setCreating] = useState(false);
   const [filter, setFilter] = useState("all");
 
@@ -235,9 +238,17 @@ export default function Rules() {
   const handleCreate = async () => {
     setCreating(true);
     try {
-      await api.createRule({ toolName: newTool, ruleType: newType.value });
+      await api.createRule({
+        toolName: newTool,
+        ruleType: newType.value,
+        inputPattern,
+        inputPatternField,
+        inputPatternAction,
+      });
       toast.success(`Rule created: ${newTool} → ${newType.label}`);
       setShowAdd(false);
+      setInputPattern("");
+      setInputPatternField("");
       fetchRules();
     } catch {
       toast.error("Failed to create rule");
@@ -460,6 +471,49 @@ export default function Rules() {
                     )}
                     {creating ? "Creating…" : "Create Rule"}
                   </motion.button>
+                </div>
+
+                {/* Input Validation Section */}
+                <div className="mt-5 pt-5 border-t border-white/5">
+                  <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-widest mb-3">Input Validation (Optional)</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                      <label className="block text-[11px] text-gray-600 mb-1.5">Argument Field</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. title, query"
+                        value={inputPatternField}
+                        onChange={(e) => setInputPatternField(e.target.value)}
+                        className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-3 py-2 text-sm text-gray-200 placeholder-gray-600 outline-none focus:border-emerald-500/40 transition-all font-mono"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] text-gray-600 mb-1.5">Regex Pattern</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. ^[a-zA-Z0-9 ]+$"
+                        value={inputPattern}
+                        onChange={(e) => setInputPattern(e.target.value)}
+                        className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-3 py-2 text-sm text-gray-200 placeholder-gray-600 outline-none focus:border-emerald-500/40 transition-all font-mono"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] text-gray-600 mb-1.5">On Violation</label>
+                      <select
+                        value={inputPatternAction}
+                        onChange={(e) => setInputPatternAction(e.target.value)}
+                        className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-3 py-2 text-sm text-gray-300 outline-none focus:border-emerald-500/40 transition-all"
+                      >
+                        <option value="block">Block</option>
+                        <option value="require_approval">Require Approval</option>
+                      </select>
+                    </div>
+                  </div>
+                  {inputPattern && inputPatternField && (
+                    <p className="text-[11px] text-amber-500/80 mt-2">
+                      ⚠ When the <span className="font-mono text-amber-400">{inputPatternField}</span> argument doesn't match <span className="font-mono text-amber-400">{inputPattern}</span>, the call will be <span className="font-semibold">{inputPatternAction === "block" ? "blocked" : "sent for approval"}</span>.
+                    </p>
+                  )}
                 </div>
 
                 {/* Preview */}

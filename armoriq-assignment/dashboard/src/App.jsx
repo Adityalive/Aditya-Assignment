@@ -6,6 +6,7 @@ import Rules from "./pages/Rules";
 import Logs from "./pages/Logs";
 import Chat from "./pages/Chat";
 import Notes from "./pages/Notes";
+import Budget from "./pages/Budget";
 
 export default function App() {
   const location = useLocation();
@@ -52,6 +53,7 @@ export default function App() {
               <Route path="/logs" element={<Logs />} />
               <Route path="/chat" element={<Chat />} />
               <Route path="/notes" element={<Notes />} />
+              <Route path="/budget" element={<Budget />} />
             </Routes>
           </motion.div>
         </AnimatePresence>

@@ -11,6 +11,7 @@ import chatRoutes from "./routes/chat.js";
 import ruleRoutes from "./routes/rules.js";
 import logRoutes from "./routes/logs.js";
 import noteRoutes from "./routes/notes.js";
+import budgetRoutes from "./routes/budget.js";
 
 dotenv.config();
 
@@ -57,6 +58,7 @@ async function main() {
   app.use("/api/rules", ruleRoutes(io));
   app.use("/api/logs", logRoutes());
   app.use("/api/notes", noteRoutes());
+  app.use("/api/budget", budgetRoutes(io));
 
   app.get("/api/tools", (req, res) => {
     res.json(mcpClient.getAllTools());

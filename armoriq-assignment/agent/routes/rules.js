@@ -20,13 +20,13 @@ export default function ruleRoutes(io) {
 
   router.post("/", async (req, res) => {
     try {
-      const { toolName, ruleType } = req.body;
+      const { toolName, ruleType, inputPattern, inputPatternField, inputPatternAction } = req.body;
       if (!toolName || !ruleType) {
         return res.status(400).json({ error: "toolName and ruleType are required" });
       }
       const rule = await Rule.findOneAndUpdate(
         { toolName },
-        { toolName, ruleType, active: true },
+        { toolName, ruleType, active: true, inputPattern: inputPattern || "", inputPatternField: inputPatternField || "", inputPatternAction: inputPatternAction || "block" },
         { upsert: true, new: true }
       );
       await invalidateCache();

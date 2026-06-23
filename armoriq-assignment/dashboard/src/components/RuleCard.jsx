@@ -269,6 +269,22 @@ export default function RuleCard({ rule, onToggle, onDelete, index = 0 }) {
                     : "This tool requires explicit user approval before each execution."}
                 </p>
               </div>
+
+              {rule.inputPattern && rule.inputPatternField && (
+                <div className="mt-3 rounded-xl bg-amber-500/5 border border-amber-500/15 p-3">
+                  <p className="text-[10px] text-amber-500/70 uppercase tracking-widest mb-2 font-semibold">Input Validation</p>
+                  <div className="flex flex-wrap gap-2 items-center">
+                    <span className="text-[11px] text-gray-500">Field:</span>
+                    <code className="text-[11px] font-mono text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded">{rule.inputPatternField}</code>
+                    <span className="text-[11px] text-gray-500">must match:</span>
+                    <code className="text-[11px] font-mono text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded">{rule.inputPattern}</code>
+                    <span className="text-[11px] text-gray-500">or be</span>
+                    <code className="text-[11px] font-mono text-red-400 bg-red-500/10 px-1.5 py-0.5 rounded">
+                      {rule.inputPatternAction === "require_approval" ? "sent for approval" : "blocked"}
+                    </code>
+                  </div>
+                </div>
+              )}
             </div>
           </motion.div>
         )}

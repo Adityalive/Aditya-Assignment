@@ -14,3 +14,10 @@ export const getTools = () => api.get("/api/tools");
 export const sendChat = (message, conversationId) =>
   api.post("/api/chat", { message, conversationId });
 export const getNotes = () => api.get("/api/notes");
+
+// Budget API
+export const getBudgetSettings = () => api.get("/api/budget/settings");
+export const setBudgetSettings = (budget) => api.post("/api/budget/settings", { budget });
+export const getBudgetUsage = () => api.get("/api/budget/usage");
+export const getConversationUsage = (conversationId) => api.get(`/api/budget/usage/${conversationId}`);
+export const resetConversationUsage = (conversationId) => api.delete(`/api/budget/usage/${conversationId}`);
