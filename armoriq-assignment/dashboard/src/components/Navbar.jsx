@@ -11,36 +11,58 @@ const links = [
 
 export default function Navbar() {
   return (
-    <nav className="border-b border-gray-800 bg-gray-900/80 backdrop-blur sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between">
+    <nav className="sticky top-0 z-50 glass-strong border-b border-white/5">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
-          className="flex items-center gap-2 font-semibold text-lg"
+          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          className="flex items-center gap-3"
         >
-          <Shield className="w-5 h-5 text-emerald-400" />
-          <span>ArmorIQ</span>
+          <div className="relative">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-400 to-cyan-500 flex items-center justify-center shadow-lg shadow-emerald-500/20">
+              <Shield className="w-5 h-5 text-gray-950" strokeWidth={2.5} />
+            </div>
+            <div className="absolute inset-0 w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-400 to-cyan-500 blur-lg opacity-40" />
+          </div>
+          <div className="flex flex-col">
+            <span className="text-lg font-bold tracking-tight text-gradient">ArmorIQ</span>
+            <span className="text-[10px] text-gray-500 font-medium tracking-widest uppercase -mt-0.5">Agent Guard</span>
+          </div>
         </motion.div>
-        <div className="flex gap-1">
+
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="flex items-center gap-1 p-1 rounded-2xl bg-white/5 border border-white/5"
+        >
           {links.map(({ to, label, icon: Icon }) => (
             <NavLink key={to} to={to}>
               {({ isActive }) => (
                 <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-colors cursor-pointer ${
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className={`relative flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer ${
                     isActive
-                      ? "bg-emerald-500/10 text-emerald-400"
-                      : "text-gray-400 hover:text-gray-200 hover:bg-gray-800"
+                      ? "text-emerald-400"
+                      : "text-gray-400 hover:text-gray-200"
                   }`}
                 >
-                  <Icon className="w-4 h-4" />
-                  {label}
+                  {isActive && (
+                    <motion.div
+                      layoutId="activeTab"
+                      className="absolute inset-0 bg-emerald-500/10 border border-emerald-500/20 rounded-xl"
+                      transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                    />
+                  )}
+                  <Icon className="w-4 h-4 relative z-10" />
+                  <span className="relative z-10 hidden sm:inline">{label}</span>
                 </motion.div>
               )}
             </NavLink>
           ))}
-        </div>
+        </motion.div>
       </div>
     </nav>
   );

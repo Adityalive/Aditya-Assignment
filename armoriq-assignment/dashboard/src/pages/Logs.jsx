@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { io } from "socket.io-client";
-import { ScrollText, RotateCcw, ShieldCheck, ShieldX } from "lucide-react";
+import { ScrollText, RotateCcw, ShieldCheck, ShieldX, Activity } from "lucide-react";
 import LogRow from "../components/LogRow";
 import * as api from "../api";
 
@@ -45,33 +45,37 @@ export default function Logs() {
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-between mb-6"
+        className="flex items-center justify-between mb-8"
       >
         <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <ScrollText className="w-6 h-6 text-emerald-400" />
+          <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center">
+              <ScrollText className="w-5 h-5 text-emerald-400" />
+            </div>
             Activity Logs
           </h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-gray-500 mt-2 ml-[52px]">
             Tool calls + policy changes in real time
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <motion.span
+          <motion.div
+            initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className={`flex items-center gap-1.5 text-xs ${
-              connected ? "text-emerald-400" : "text-red-400"
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-medium ${
+              connected
+                ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                : "bg-red-500/10 text-red-400 border border-red-500/20"
             }`}
           >
-            <motion.span
-              animate={{ scale: connected ? [1, 1.3, 1] : 1 }}
-              transition={{ repeat: connected ? Infinity : 0, duration: 2 }}
-              className={`w-2 h-2 rounded-full ${
-                connected ? "bg-emerald-400" : "bg-red-400"
-              }`}
+            <motion.div
+              animate={connected ? { scale: [1, 1.4, 1] } : {}}
+              transition={{ repeat: Infinity, duration: 2 }}
+              className={`w-2 h-2 rounded-full ${connected ? "bg-emerald-400" : "bg-red-400"}`}
             />
-            {connected ? "Live" : "Disconnected"}
-          </motion.span>
+            <Activity className="w-3 h-3" />
+            {connected ? "Live" : "Offline"}
+          </motion.div>
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -81,7 +85,7 @@ export default function Logs() {
                 .then(({ data }) => setLogs(data.slice(0, 50)))
                 .catch(() => {})
             }
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors text-xs"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/5 rounded-xl transition-all text-xs text-gray-400 hover:text-gray-200"
           >
             <RotateCcw className="w-3 h-3" />
             Refresh
@@ -89,56 +93,71 @@ export default function Logs() {
         </div>
       </motion.div>
 
-      <div className="bg-gray-900 rounded-xl border border-gray-800 divide-y divide-gray-800">
+      <div className="glass rounded-2xl border border-white/5 overflow-hidden">
         {logs.length === 0 ? (
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center text-gray-600 py-12"
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="text-center py-20"
           >
-            No activity yet. Start a chat or modify a rule.
-          </motion.p>
+            <div className="w-20 h-20 rounded-3xl bg-emerald-500/10 flex items-center justify-center mx-auto mb-5">
+              <ScrollText className="w-10 h-10 text-emerald-400/50" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-300 mb-2">No activity yet</h3>
+            <p className="text-sm text-gray-600 max-w-sm mx-auto">
+              Start a chat or modify a rule to see activity here.
+            </p>
+          </motion.div>
         ) : (
-          <AnimatePresence initial={false}>
-            {logs.map((entry, i) =>
-              entry.type === "rule" ? (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                  className="flex items-center gap-3 px-4 py-3 hover:bg-gray-800/50 rounded-lg transition-colors"
-                >
-                  {entry.action === "deleted" ? (
-                    <ShieldX className="w-5 h-5 text-red-400 shrink-0" />
-                  ) : (
-                    <ShieldCheck className="w-5 h-5 text-emerald-400 shrink-0" />
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <span className="text-sm font-medium">
-                      Policy {entry.action}
+          <div className="divide-y divide-white/5">
+            <AnimatePresence initial={false}>
+              {logs.map((entry, i) =>
+                entry.type === "rule" ? (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                    className="flex items-center gap-3.5 px-4 py-3.5 hover:bg-white/[0.02] transition-colors"
+                  >
+                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
+                      entry.action === "deleted" ? "bg-red-500/10" : "bg-emerald-500/10"
+                    }`}>
+                      {entry.action === "deleted" ? (
+                        <ShieldX className="w-4 h-4 text-red-400" />
+                      ) : (
+                        <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <span className="text-sm font-semibold text-gray-200">
+                        Policy {entry.action}
+                      </span>
+                      {entry.rule && (
+                        <span className="text-sm text-gray-400 ml-2">
+                          {entry.rule.toolName} → {entry.rule.ruleType}
+                          {!entry.rule.active && (
+                            <span className="text-gray-600 ml-1">(inactive)</span>
+                          )}
+                        </span>
+                      )}
+                      {entry.id && (
+                        <span className="text-xs text-gray-600 ml-2 font-mono">
+                          {entry.id.slice(-6)}
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-[11px] text-gray-600 shrink-0 font-medium tabular-nums">
+                      {new Date(entry.timestamp).toLocaleTimeString()}
                     </span>
-                    {entry.rule && (
-                      <span className="text-sm text-gray-400 ml-2">
-                        {entry.rule.toolName} → {entry.rule.ruleType}
-                        {!entry.rule.active && " (inactive)"}
-                      </span>
-                    )}
-                    {entry.id && (
-                      <span className="text-sm text-gray-500 ml-2">
-                        rule {entry.id.slice(-6)}
-                      </span>
-                    )}
-                  </div>
-                  <span className="text-xs text-gray-600 shrink-0">
-                    {new Date(entry.timestamp).toLocaleTimeString()}
-                  </span>
-                </motion.div>
-              ) : (
-                <LogRow key={entry._id || i} log={entry} index={i} />
-              )
-            )}
-          </AnimatePresence>
+                  </motion.div>
+                ) : (
+                  <LogRow key={entry._id || i} log={entry} index={i} />
+                )
+              )}
+            </AnimatePresence>
+          </div>
         )}
         <div ref={bottomRef} />
       </div>

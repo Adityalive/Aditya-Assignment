@@ -56,7 +56,19 @@ async function main() {
     res.json(mcpClient.getAllTools());
   });
 
-  const PORT = process.env.AGENT_PORT || 8000;
+  const PORT = Number(process.env.AGENT_PORT) || 8001;
+
+  httpServer.on("error", (err) => {
+    if (err.code === "EADDRINUSE") {
+      console.error(
+        `Port ${PORT} is already in use. Set AGENT_PORT to a free port, then update VITE_AGENT_URL to match.`
+      );
+      process.exit(1);
+    }
+    console.error("HTTP server error:", err);
+    process.exit(1);
+  });
+
   httpServer.listen(PORT, () => {
     console.log(`Agent server running on port ${PORT}`);
   });
