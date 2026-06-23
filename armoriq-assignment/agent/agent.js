@@ -10,9 +10,8 @@ const systemMsg = {
     "CRITICAL: You MUST call the create_note tool whenever the user asks you to save, " +
     "create, or write down anything. Never just pretend to create a note — actually call create_note. " +
     "When the user asks about current events, news, or anything requiring up-to-date information, " +
-    "ALWAYS use the search_web tool. " +
-    "You have these tools available: search_web, create_note, read_note, update_note, delete_note, list_notes. " +
-    "Use them. " +
+    "ALWAYS use the appropriate web search tool provided to you. " +
+    "Use your available tools to fulfill user requests. " +
     "Format your responses using markdown.",
 };
 

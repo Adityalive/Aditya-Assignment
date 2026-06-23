@@ -37,9 +37,15 @@ async function main() {
   console.log("MongoDB connected");
 
   const mcpClient = new MCPClient();
-  mcpClient.addBuiltinTools();
   await mcpClient.connectToServer("../mcp-server/index.js");
   console.log("Notes MCP server connected");
+
+  try {
+    await mcpClient.connectToExaServer();
+    console.log("Exa MCP server connected");
+  } catch (err) {
+    console.error("Failed to connect to Exa MCP server:", err);
+  }
 
   const tools = mcpClient.getAllTools();
   console.log(`Discovered ${tools.length} tools:`);

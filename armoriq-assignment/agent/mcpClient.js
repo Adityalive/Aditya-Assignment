@@ -12,25 +12,9 @@ export class MCPClient {
     this.tools = [];
   }
 
-  addBuiltinTools() {
-    this.tools.push({
-      name: "search_web",
-      description: "Search the web for current information. Use this for any question about recent events, news, or live data.",
-      inputSchema: {
-        type: "object",
-        properties: {
-          query: { type: "string", description: "The search query" },
-          numResults: { type: "number", description: "Number of results (default 5)" },
-        },
-        required: ["query"],
-      },
-      serverId: "builtin",
-    });
-  }
-
   async connectToServer(serverScript) {
     this.notesClient = new Client(
-      { name: "armoriq-agent", version: "1.0.0" },
+      { name: "armoriq-agent-notes", version: "1.0.0" },
       { capabilities: {} }
     );
 
@@ -43,7 +27,7 @@ export class MCPClient {
     });
 
     transport.onerror = (err) => {
-      console.error("[MCP stderr]", err);
+      console.error("[Notes MCP stderr]", err);
     };
 
     await this.notesClient.connect(transport);
@@ -51,6 +35,31 @@ export class MCPClient {
     const result = await this.notesClient.listTools();
     const serverTools = result.tools || [];
     this.tools.push(...serverTools.map((t) => ({ ...t, serverId: "notes" })));
+    return serverTools;
+  }
+
+  async connectToExaServer() {
+    this.exaClient = new Client(
+      { name: "armoriq-agent-exa", version: "1.0.0" },
+      { capabilities: {} }
+    );
+
+    const transport = new StdioClientTransport({
+      command: process.platform === "win32" ? "npx.cmd" : "npx",
+      args: ["-y", "exa-mcp-server"],
+      env: { ...process.env }, // Needs EXA_API_KEY
+      stderr: "pipe",
+    });
+
+    transport.onerror = (err) => {
+      console.error("[Exa MCP stderr]", err);
+    };
+
+    await this.exaClient.connect(transport);
+
+    const result = await this.exaClient.listTools();
+    const serverTools = result.tools || [];
+    this.tools.push(...serverTools.map((t) => ({ ...t, serverId: "exa" })));
     return serverTools;
   }
 
@@ -70,12 +79,17 @@ export class MCPClient {
   }
 
   async callTool(toolName, args) {
-    if (toolName === "search_web") {
-      return this.searchWeb(args.query, args.numResults || 5);
-    }
-    if (!this.notesClient) return "MCP server not connected";
+    const tool = this.tools.find(t => t.name === toolName);
+    if (!tool) return `Error: Tool ${toolName} not found`;
+    
+    let client = null;
+    if (tool.serverId === "notes") client = this.notesClient;
+    if (tool.serverId === "exa") client = this.exaClient;
+    
+    if (!client) return `Error: Client for ${tool.serverId} not connected`;
+    
     try {
-      const result = await this.notesClient.callTool({
+      const result = await client.callTool({
         name: toolName,
         arguments: args,
       });
@@ -86,36 +100,6 @@ export class MCPClient {
       return textParts.join("\n") || JSON.stringify(result);
     } catch (err) {
       return `Error calling ${toolName}: ${err.message}`;
-    }
-  }
-
-  async searchWeb(query, numResults = 5) {
-    const apiKey = process.env.EXA_API_KEY;
-    if (!apiKey) return "Error: EXA_API_KEY not configured";
-    try {
-      const res = await fetch("https://api.exa.ai/search", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": apiKey,
-        },
-        body: JSON.stringify({
-          query,
-          numResults,
-          type: "web",
-        }),
-      });
-      if (!res.ok) {
-        const txt = await res.text();
-        return `Search failed (${res.status}): ${txt}`;
-      }
-      const data = await res.json();
-      const results = data.results || [];
-      return results
-        .map((r, i) => `${i + 1}. ${r.title}\n   ${r.url}\n   ${r.text?.slice(0, 300) || ""}`)
-        .join("\n\n") || "No results found";
-    } catch (err) {
-      return `Search error: ${err.message}`;
     }
   }
 
