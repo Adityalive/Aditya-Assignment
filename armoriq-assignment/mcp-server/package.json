@@ -1,0 +1,14 @@
+{
+  "name": "armoriq-mcp-server",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "dotenv": "^16.4.0",
+    "mongoose": "^8.0.0"
+  }
+}
