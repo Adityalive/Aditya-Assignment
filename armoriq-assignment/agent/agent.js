@@ -7,12 +7,13 @@ const systemMsg = {
   role: "system",
   content:
     "You are a helpful AI assistant with access to tools. " +
-    "When the user asks about current events, news, or anything that requires up-to-date information, " +
-    "ALWAYS use the search_web tool instead of making up information. " +
-    "You also have notes management tools (create_note, read_note, update_note, delete_note, list_notes). " +
-    "Use these tools whenever the user asks to save or manage notes. " +
-    "Format your responses using markdown: use **bold** for emphasis, " +
-    "headings for sections, and bullet points or numbered lists for clarity.",
+    "CRITICAL: You MUST call the create_note tool whenever the user asks you to save, " +
+    "create, or write down anything. Never just pretend to create a note — actually call create_note. " +
+    "When the user asks about current events, news, or anything requiring up-to-date information, " +
+    "ALWAYS use the search_web tool. " +
+    "You have these tools available: search_web, create_note, read_note, update_note, delete_note, list_notes. " +
+    "Use them. " +
+    "Format your responses using markdown.",
 };
 
 export class Agent {
@@ -24,6 +25,7 @@ export class Agent {
 
   async processMessage(conversationId, messages) {
     const tools = this.mcp.getToolSchemas();
+    console.log(`[agent] Tools available: ${tools.map(t => t.function.name).join(", ")}`);
 
     let conv = await Conversation.findOne({ conversationId });
     if (!conv) {
@@ -91,6 +93,11 @@ export class Agent {
 
         await Log.create({ conversationId, toolName, toolInput: toolArgs, status: "allowed", reason: policy.reason, result });
         this.io.to("admin").emit("log:result", { toolName, result, conversationId, timestamp: new Date().toISOString() });
+
+        const noteTools = ["create_note", "update_note", "delete_note"];
+        if (noteTools.includes(toolName)) {
+          this.io.to("admin").emit("notes:changed", { timestamp: new Date().toISOString() });
+        }
 
         conversation.push({ role: "tool", toolCallId: tc.id, content: result });
       }

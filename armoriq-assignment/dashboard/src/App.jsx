@@ -5,6 +5,7 @@ import Navbar from "./components/Navbar";
 import Rules from "./pages/Rules";
 import Logs from "./pages/Logs";
 import Chat from "./pages/Chat";
+import Notes from "./pages/Notes";
 
 export default function App() {
   const location = useLocation();
@@ -39,6 +40,7 @@ export default function App() {
               <Route path="/rules" element={<Rules />} />
               <Route path="/logs" element={<Logs />} />
               <Route path="/chat" element={<Chat />} />
+              <Route path="/notes" element={<Notes />} />
             </Routes>
           </motion.div>
         </AnimatePresence>

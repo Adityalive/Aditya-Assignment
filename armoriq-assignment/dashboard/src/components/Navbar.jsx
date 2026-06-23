@@ -1,11 +1,12 @@
 import { NavLink } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Shield, ScrollText, MessageSquare } from "lucide-react";
+import { Shield, ScrollText, MessageSquare, FileText } from "lucide-react";
 
 const links = [
   { to: "/rules", label: "Rules", icon: Shield },
   { to: "/logs", label: "Logs", icon: ScrollText },
   { to: "/chat", label: "Chat", icon: MessageSquare },
+  { to: "/notes", label: "Notes", icon: FileText },
 ];
 
 export default function Navbar() {

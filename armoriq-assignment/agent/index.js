@@ -10,6 +10,7 @@ import { Agent } from "./agent.js";
 import chatRoutes from "./routes/chat.js";
 import ruleRoutes from "./routes/rules.js";
 import logRoutes from "./routes/logs.js";
+import noteRoutes from "./routes/notes.js";
 
 dotenv.config();
 
@@ -49,6 +50,7 @@ async function main() {
   app.use("/api/chat", chatRoutes(agent));
   app.use("/api/rules", ruleRoutes(io));
   app.use("/api/logs", logRoutes());
+  app.use("/api/notes", noteRoutes());
 
   app.get("/api/tools", (req, res) => {
     res.json(mcpClient.getAllTools());

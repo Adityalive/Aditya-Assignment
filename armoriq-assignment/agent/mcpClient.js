@@ -42,6 +42,10 @@ export class MCPClient {
       stderr: "pipe",
     });
 
+    transport.onerror = (err) => {
+      console.error("[MCP stderr]", err);
+    };
+
     await this.notesClient.connect(transport);
 
     const result = await this.notesClient.listTools();

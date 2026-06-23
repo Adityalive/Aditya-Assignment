@@ -13,3 +13,4 @@ export const getLogs = (convId) =>
 export const getTools = () => api.get("/api/tools");
 export const sendChat = (message, conversationId) =>
   api.post("/api/chat", { message, conversationId });
+export const getNotes = () => api.get("/api/notes");
