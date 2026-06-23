@@ -2,8 +2,12 @@ import { Router } from "express";
 import { Rule } from "../models/Rule.js";
 import { invalidateCache } from "../policyEngine.js";
 
-export default function ruleRoutes() {
+export default function ruleRoutes(io) {
   const router = Router();
+
+  const notify = (event, data) => {
+    io.to("admin").emit(event, { ...data, timestamp: new Date().toISOString() });
+  };
 
   router.get("/", async (req, res) => {
     try {
@@ -26,6 +30,7 @@ export default function ruleRoutes() {
         { upsert: true, new: true }
       );
       await invalidateCache();
+      notify("rule:updated", { rule });
       res.json(rule);
     } catch (err) {
       res.status(500).json({ error: err.message });
@@ -34,8 +39,9 @@ export default function ruleRoutes() {
 
   router.delete("/:id", async (req, res) => {
     try {
-      await Rule.findByIdAndDelete(req.params.id);
+      const rule = await Rule.findByIdAndDelete(req.params.id);
       await invalidateCache();
+      notify("rule:deleted", { id: req.params.id });
       res.json({ success: true });
     } catch (err) {
       res.status(500).json({ error: err.message });
@@ -49,6 +55,7 @@ export default function ruleRoutes() {
       rule.active = !rule.active;
       await rule.save();
       await invalidateCache();
+      notify("rule:toggled", { rule });
       res.json(rule);
     } catch (err) {
       res.status(500).json({ error: err.message });

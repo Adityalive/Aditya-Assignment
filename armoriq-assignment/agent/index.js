@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import morgan from "morgan";
 import { createServer } from "http";
 import { Server as SocketIOServer } from "socket.io";
 import mongoose from "mongoose";
@@ -24,6 +25,7 @@ const io = new SocketIOServer(httpServer, {
 
 app.use(cors({ origin: process.env.DASHBOARD_URL || "http://localhost:5173" }));
 app.use(express.json());
+app.use(morgan("dev"));
 
 io.on("connection", (socket) => {
   socket.join("admin");
@@ -34,11 +36,9 @@ async function main() {
   console.log("MongoDB connected");
 
   const mcpClient = new MCPClient();
+  mcpClient.addBuiltinTools();
   await mcpClient.connectToServer("../mcp-server/index.js");
   console.log("Notes MCP server connected");
-
-  await mcpClient.connectToExa();
-  console.log("Exa MCP server connected");
 
   const tools = mcpClient.getAllTools();
   console.log(`Discovered ${tools.length} tools:`);
@@ -47,7 +47,7 @@ async function main() {
   const agent = new Agent(mcpClient, io);
 
   app.use("/api/chat", chatRoutes(agent));
-  app.use("/api/rules", ruleRoutes());
+  app.use("/api/rules", ruleRoutes(io));
   app.use("/api/logs", logRoutes());
 
   app.get("/api/tools", (req, res) => {

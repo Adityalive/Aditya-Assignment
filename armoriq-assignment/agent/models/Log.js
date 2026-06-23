@@ -2,7 +2,8 @@ import mongoose from "mongoose";
 
 const logSchema = new mongoose.Schema(
   {
-    conversationId: { type: String, required: true },
+    conversationId: { type: String, 
+      required: true },
     toolName: { type: String, required: true },
     toolInput: { type: mongoose.Schema.Types.Mixed },
     status: {
@@ -13,7 +14,7 @@ const logSchema = new mongoose.Schema(
     reason: { type: String, default: "" },
     result: { type: mongoose.Schema.Types.Mixed },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 export const Log = mongoose.model("Log", logSchema);

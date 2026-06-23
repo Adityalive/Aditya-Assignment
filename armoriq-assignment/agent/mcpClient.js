@@ -1,6 +1,5 @@
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
-import { spawn } from "child_process";
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -8,58 +7,47 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export class MCPClient {
   constructor() {
-    this.client = new Client(
-      { name: "armoriq-agent", version: "1.0.0" },
-      { capabilities: {} }
-    );
-    this.transports = [];
+    this.notesClient = null;
+    this.exaClient = null;
     this.tools = [];
   }
 
-  async connectToServer(serverScript) {
-    const serverPath = path.resolve(__dirname, serverScript);
-    const proc = spawn("node", [serverPath], {
-      stdio: ["pipe", "pipe", "pipe"],
+  addBuiltinTools() {
+    this.tools.push({
+      name: "search_web",
+      description: "Search the web for current information. Use this for any question about recent events, news, or live data.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          query: { type: "string", description: "The search query" },
+          numResults: { type: "number", description: "Number of results (default 5)" },
+        },
+        required: ["query"],
+      },
+      serverId: "builtin",
     });
-
-    const transport = new StdioClientTransport({
-      stdin: proc.stdin,
-      stdout: proc.stdout,
-      stderr: proc.stderr,
-    });
-
-    await this.client.connect(transport);
-    this.transports.push(transport);
-
-    const result = await this.client.request(
-      { method: "tools/list" },
-      { resultType: "object" }
-    );
-
-    const serverTools = result.tools || result.result?.tools || [];
-    this.tools.push(...serverTools.map((t) => ({ ...t, serverId: "notes" })));
-    return serverTools;
   }
 
-  async connectToExa() {
-    try {
-      const { HttpClient } = await import("@modelcontextprotocol/sdk/client/http.js");
-      const transport = new HttpClient("https://mcp.exa.ai");
-      await this.client.connect(transport);
-      this.transports.push(transport);
+  async connectToServer(serverScript) {
+    this.notesClient = new Client(
+      { name: "armoriq-agent", version: "1.0.0" },
+      { capabilities: {} }
+    );
 
-      const result = await this.client.request(
-        { method: "tools/list" },
-        { resultType: "object" }
-      );
+    const serverPath = path.resolve(__dirname, serverScript);
 
-      const serverTools = result.tools || result.result?.tools || [];
-      this.tools.push(...serverTools.map((t) => ({ ...t, serverId: "exa" })));
-      return serverTools;
-    } catch (err) {
-      console.warn("Failed to connect to Exa MCP:", err.message);
-      return [];
-    }
+    const transport = new StdioClientTransport({
+      command: "node",
+      args: [serverPath],
+      stderr: "pipe",
+    });
+
+    await this.notesClient.connect(transport);
+
+    const result = await this.notesClient.listTools();
+    const serverTools = result.tools || [];
+    this.tools.push(...serverTools.map((t) => ({ ...t, serverId: "notes" })));
+    return serverTools;
   }
 
   getAllTools() {
@@ -78,15 +66,16 @@ export class MCPClient {
   }
 
   async callTool(toolName, args) {
+    if (toolName === "search_web") {
+      return this.searchWeb(args.query, args.numResults || 5);
+    }
+    if (!this.notesClient) return "MCP server not connected";
     try {
-      const result = await this.client.request(
-        {
-          method: "tools/call",
-          params: { name: toolName, arguments: args },
-        },
-        { resultType: "object" }
-      );
-      const content = result.content || result.result?.content || [];
+      const result = await this.notesClient.callTool({
+        name: toolName,
+        arguments: args,
+      });
+      const content = result.content || [];
       const textParts = content
         .filter((c) => c.type === "text")
         .map((c) => c.text);
@@ -96,9 +85,38 @@ export class MCPClient {
     }
   }
 
-  async disconnect() {
-    for (const t of this.transports) {
-      try { await t.close(); } catch {}
+  async searchWeb(query, numResults = 5) {
+    const apiKey = process.env.EXA_API_KEY;
+    if (!apiKey) return "Error: EXA_API_KEY not configured";
+    try {
+      const res = await fetch("https://api.exa.ai/search", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": apiKey,
+        },
+        body: JSON.stringify({
+          query,
+          numResults,
+          type: "web",
+        }),
+      });
+      if (!res.ok) {
+        const txt = await res.text();
+        return `Search failed (${res.status}): ${txt}`;
+      }
+      const data = await res.json();
+      const results = data.results || [];
+      return results
+        .map((r, i) => `${i + 1}. ${r.title}\n   ${r.url}\n   ${r.text?.slice(0, 300) || ""}`)
+        .join("\n\n") || "No results found";
+    } catch (err) {
+      return `Search error: ${err.message}`;
     }
+  }
+
+  async disconnect() {
+    try { await this.notesClient?.close(); } catch {}
+    try { await this.exaClient?.close(); } catch {}
   }
 }
