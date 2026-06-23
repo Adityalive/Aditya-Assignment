@@ -26,15 +26,18 @@ export class Agent {
     const tools = this.mcp.getToolSchemas();
     console.log(`[agent] Tools available: ${tools.map(t => t.function.name).join(", ")}`);
 
+    const userMsg = messages[messages.length - 1];
+
     let conv = await Conversation.findOne({ conversationId });
     if (!conv) {
+      const title = userMsg.content.length > 40 ? userMsg.content.substring(0, 40) + "..." : userMsg.content;
       conv = await Conversation.create({
         conversationId,
+        title,
         messages: [systemMsg],
       });
     }
 
-    const userMsg = messages[messages.length - 1];
     conv.messages.push(userMsg);
 
     let conversation = [...conv.messages];
@@ -63,7 +66,7 @@ export class Agent {
       }
 
       if (!msg.toolCalls || msg.toolCalls.length === 0) {
-        conv.messages.push(msg);
+        conv.messages = [...conversation, msg];
         await conv.save();
         return { role: "assistant", content: msg.content };
       }

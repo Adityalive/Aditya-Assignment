@@ -13,6 +13,9 @@ export const getLogs = (convId) =>
 export const getTools = () => api.get("/api/tools");
 export const sendChat = (message, conversationId) =>
   api.post("/api/chat", { message, conversationId });
+export const getChatSessions = () => api.get("/api/chat");
+export const getChatHistory = (id) => api.get(`/api/chat/${id}`);
+export const deleteChatSession = (id) => api.delete(`/api/chat/${id}`);
 export const getNotes = () => api.get("/api/notes");
 
 // Budget API
