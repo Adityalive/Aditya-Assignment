@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { Budget } from "../models/Budget.js";
-import { GlobalSettings } from "../models/GlobalSettings.js";
+import { GlobalSettings } from "./settings.js";
+import { Budget } from "./model.js";
 
 export default function budgetRoutes(io) {
   const router = Router();

@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { Rule } from "../models/Rule.js";
-import { invalidateCache } from "../policyEngine.js";
+import { Rule } from "./model.js";
+import { invalidateCache } from "./policyEngine.js";
 
 export default function ruleRoutes(io) {
   const router = Router();

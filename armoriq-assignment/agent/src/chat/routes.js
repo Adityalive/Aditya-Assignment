@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { v4 as uuidv4 } from "uuid";
-import { Conversation } from "../models/Conversation.js";
+import { Conversation } from "./model.js";
 
 export default function chatRoutes(agent) {
   const router = Router();

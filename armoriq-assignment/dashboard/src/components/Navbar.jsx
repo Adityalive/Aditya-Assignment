@@ -1,6 +1,6 @@
 import { NavLink } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Shield, ScrollText, MessageSquare, FileText, Coins } from "lucide-react";
+import { Shield, ScrollText, MessageSquare, FileText, Coins, Wrench, Link2 } from "lucide-react";
 
 const links = [
   { to: "/rules", label: "Rules", icon: Shield },
@@ -8,6 +8,8 @@ const links = [
   { to: "/chat", label: "Chat", icon: MessageSquare },
   { to: "/notes", label: "Notes", icon: FileText },
   { to: "/budget", label: "Budget", icon: Coins },
+  { to: "/tools", label: "Tools", icon: Wrench },
+  { to: "/integrations", label: "Integrations", icon: Link2 },
 ];
 
 export default function Navbar() {

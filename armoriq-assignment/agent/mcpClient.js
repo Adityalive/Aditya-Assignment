@@ -1,5 +1,6 @@
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
+import { SSEClientTransport } from "@modelcontextprotocol/sdk/client/sse.js";
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -9,6 +10,7 @@ export class MCPClient {
   constructor() {
     this.notesClient = null;
     this.exaClient = null;
+    this.alphaClient = null;
     this.tools = [];
   }
 
@@ -63,6 +65,36 @@ export class MCPClient {
     return serverTools;
   }
 
+  async connectToAlphaVantage(apiKey) {
+    if (this.alphaClient) return;
+    
+    this.alphaClient = new Client(
+      { name: "armoriq-agent-alpha", version: "1.0.0" },
+      { capabilities: {} }
+    );
+
+    const url = new URL(`https://mcp.alphavantage.co/mcp?apikey=${apiKey}`);
+    const transport = new SSEClientTransport(url);
+
+    transport.onerror = (err) => {
+      console.error("[Alpha Vantage MCP error]", err);
+    };
+
+    await this.alphaClient.connect(transport);
+
+    const result = await this.alphaClient.listTools();
+    const serverTools = result.tools || [];
+    
+    // Check if tools exist to avoid duplication
+    const existingToolNames = new Set(this.tools.map(t => t.name));
+    const newTools = serverTools
+      .filter(t => !existingToolNames.has(t.name))
+      .map((t) => ({ ...t, serverId: "alphavantage" }));
+      
+    this.tools.push(...newTools);
+    return newTools;
+  }
+
   getAllTools() {
     return this.tools;
   }
@@ -85,6 +117,7 @@ export class MCPClient {
     let client = null;
     if (tool.serverId === "notes") client = this.notesClient;
     if (tool.serverId === "exa") client = this.exaClient;
+    if (tool.serverId === "alphavantage") client = this.alphaClient;
     
     if (!client) return `Error: Client for ${tool.serverId} not connected`;
     

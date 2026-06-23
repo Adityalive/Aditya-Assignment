@@ -1,6 +1,6 @@
-import { Rule } from "./models/Rule.js";
-import { GlobalSettings } from "./models/GlobalSettings.js";
-import { Budget } from "./models/Budget.js";
+import { Rule } from "./model.js";
+import { Budget } from "../budget/model.js";
+import { GlobalSettings } from "../budget/settings.js";
 
 let cachedRules = [];
 let lastFetch = 0;

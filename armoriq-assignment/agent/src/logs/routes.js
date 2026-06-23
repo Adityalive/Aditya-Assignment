@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { Log } from "../models/Log.js";
+import { Log } from "./model.js";
 
 export default function logRoutes() {
   const router = Router();

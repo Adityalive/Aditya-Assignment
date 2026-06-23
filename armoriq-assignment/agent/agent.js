@@ -1,7 +1,7 @@
 import { Mistral } from "@mistralai/mistralai";
-import { checkPolicy, recordTokenUsage } from "./policyEngine.js";
-import { Log } from "./models/Log.js";
-import { Conversation } from "./models/Conversation.js";
+import { checkPolicy, recordTokenUsage } from "./src/rules/policyEngine.js";
+import { Log } from "./src/logs/model.js";
+import { Conversation } from "./src/chat/model.js";
 
 const systemMsg = {
   role: "system",

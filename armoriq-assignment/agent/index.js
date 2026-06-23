@@ -7,11 +7,13 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 import { MCPClient } from "./mcpClient.js";
 import { Agent } from "./agent.js";
-import chatRoutes from "./routes/chat.js";
-import ruleRoutes from "./routes/rules.js";
-import logRoutes from "./routes/logs.js";
-import noteRoutes from "./routes/notes.js";
-import budgetRoutes from "./routes/budget.js";
+import chatRoutes from "./src/chat/routes.js";
+import ruleRoutes from "./src/rules/routes.js";
+import logRoutes from "./src/logs/routes.js";
+import noteRoutes from "./src/notes/routes.js";
+import budgetRoutes from "./src/budget/routes.js";
+import integrationRoutes from "./src/integrations/routes.js";
+import { Integration } from "./src/integrations/model.js";
 
 dotenv.config();
 
@@ -48,6 +50,16 @@ async function main() {
     console.error("Failed to connect to Exa MCP server:", err);
   }
 
+  try {
+    const alphaIntegration = await Integration.findOne({ provider: "alphavantage", isActive: true });
+    if (alphaIntegration && alphaIntegration.apiKey) {
+      await mcpClient.connectToAlphaVantage(alphaIntegration.apiKey);
+      console.log("Alpha Vantage MCP server connected from DB");
+    }
+  } catch (err) {
+    console.error("Failed to connect to Alpha Vantage MCP server on startup:", err);
+  }
+
   const tools = mcpClient.getAllTools();
   console.log(`Discovered ${tools.length} tools:`);
   tools.forEach((t) => console.log(`  - ${t.name} (${t.serverId})`));
@@ -59,6 +71,7 @@ async function main() {
   app.use("/api/logs", logRoutes());
   app.use("/api/notes", noteRoutes());
   app.use("/api/budget", budgetRoutes(io));
+  app.use("/api/integrations", integrationRoutes(mcpClient));
 
   app.get("/api/tools", (req, res) => {
     res.json(mcpClient.getAllTools());

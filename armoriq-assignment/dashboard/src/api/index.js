@@ -24,3 +24,8 @@ export const setBudgetSettings = (budget) => api.post("/api/budget/settings", { 
 export const getBudgetUsage = () => api.get("/api/budget/usage");
 export const getConversationUsage = (conversationId) => api.get(`/api/budget/usage/${conversationId}`);
 export const resetConversationUsage = (conversationId) => api.delete(`/api/budget/usage/${conversationId}`);
+
+// Integrations
+export const getIntegrations = () => api.get("/api/integrations").then(res => res.data);
+export const saveIntegration = (data) => api.post("/api/integrations", data).then(res => res.data);
+export const deleteIntegration = (provider) => api.delete(`/api/integrations/${provider}`).then(res => res.data);
