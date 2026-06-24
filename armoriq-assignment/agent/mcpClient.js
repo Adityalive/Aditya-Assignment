@@ -73,8 +73,11 @@ export class MCPClient {
       { capabilities: {} }
     );
 
-    const url = new URL(`https://mcp.alphavantage.co/mcp?apikey=${apiKey}`);
-    const transport = new SSEClientTransport(url);
+    const transport = new StdioClientTransport({
+      command: "uvx",
+      args: ["--from", "marketdata-mcp-server", "marketdata-mcp", apiKey],
+      stderr: "pipe",
+    });
 
     transport.onerror = (err) => {
       console.error("[Alpha Vantage MCP error]", err);

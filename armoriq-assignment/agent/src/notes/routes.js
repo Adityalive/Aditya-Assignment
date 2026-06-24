@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { Note } from "../models/Note.js";
+import { Note } from "./model.js";
 
 export default function noteRoutes() {
   const router = Router();

@@ -7,7 +7,6 @@ import Logs from "./pages/Logs";
 import Chat from "./pages/Chat";
 import Notes from "./pages/Notes";
 import Budget from "./pages/Budget";
-import Tools from "./pages/Tools";
 import Integrations from "./pages/Integrations";
 
 export default function App() {
@@ -56,7 +55,6 @@ export default function App() {
               <Route path="/chat" element={<Chat />} />
               <Route path="/notes" element={<Notes />} />
               <Route path="/budget" element={<Budget />} />
-              <Route path="/tools" element={<Tools />} />
               <Route path="/integrations" element={<Integrations />} />
             </Routes>
           </motion.div>

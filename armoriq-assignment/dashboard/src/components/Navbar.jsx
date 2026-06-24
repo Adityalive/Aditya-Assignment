@@ -8,7 +8,6 @@ const links = [
   { to: "/chat", label: "Chat", icon: MessageSquare },
   { to: "/notes", label: "Notes", icon: FileText },
   { to: "/budget", label: "Budget", icon: Coins },
-  { to: "/tools", label: "Tools", icon: Wrench },
   { to: "/integrations", label: "Integrations", icon: Link2 },
 ];
 

@@ -40,7 +40,27 @@ export class Agent {
 
     conv.messages.push(userMsg);
 
-    let conversation = [...conv.messages];
+    // Sanitize: remove tool-role messages whose toolCallId has no matching
+    // assistant tool_calls entry. This handles corrupted history from before
+    // the schema was fixed.
+    const sanitizeMessages = (msgs) => {
+      // Collect all valid toolCallIds from assistant messages
+      const validToolCallIds = new Set();
+      for (const m of msgs) {
+        if (m.role === "assistant" && Array.isArray(m.toolCalls)) {
+          for (const tc of m.toolCalls) {
+            if (tc.id) validToolCallIds.add(tc.id);
+          }
+        }
+      }
+      // Keep only messages where: not a tool role, OR has a valid toolCallId
+      return msgs.filter(m => {
+        if (m.role !== "tool") return true;
+        return validToolCallIds.has(m.toolCallId);
+      });
+    };
+
+    let conversation = sanitizeMessages([...conv.messages]);
 
     while (true) {
       const response = await this.mistral.chat.complete({
@@ -52,6 +72,13 @@ export class Agent {
 
       const choice = response.choices[0];
       const msg = choice.message;
+
+      // Mistral sometimes returns an array of objects for content (e.g. for citations)
+      if (Array.isArray(msg.content)) {
+        msg.content = msg.content
+          .map(part => typeof part === 'string' ? part : part.text || '')
+          .join('');
+      }
 
       // ── Record token usage ─────────────────────────────────────
       const usage = response.usage;

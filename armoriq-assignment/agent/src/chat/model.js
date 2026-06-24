@@ -4,7 +4,7 @@ const conversationSchema = new mongoose.Schema(
   {
     conversationId: { type: String, required: true, unique: true },
     title: { type: String, default: "New Chat" },
-    messages: [{ role: String, content: String, toolCallId: String }],
+    messages: [mongoose.Schema.Types.Mixed],
   },
   { timestamps: true }
 );
